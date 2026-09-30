@@ -1,11 +1,5 @@
 // Global test setup
-import { beforeAll, vi } from 'vitest'
-
-beforeAll(() => {
-  // Override DATABASE_URL for Testing Environment
-  process.env.DATABASE_URL =
-    'postgresql://mcp_user_test:mcp_pass_test@localhost:5434/mcp_db_test'
-})
+import { vi } from 'vitest'
 
 // Mock console methods to avoid noise in tests
 global.console = {

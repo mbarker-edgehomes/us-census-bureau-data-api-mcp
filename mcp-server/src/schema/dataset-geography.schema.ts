@@ -108,7 +108,7 @@ export function parseGeographyJson(
     return []
   }
 
-  // Basic parsing without metadata - the tool will enhance this with database data
+  // Preserve the hierarchy advertised by the API.
   const parsed = validatedRaw.fips.map((entry) => {
     return {
       vintage: entry.referenceDate,
@@ -122,7 +122,7 @@ export function parseGeographyJson(
       fullName: entry.name,
       description: undefined,
       onSpine: false,
-      queryExample: `for=${entry.name.replace(/\s+/g, '+')}:*`, // Replaces all whitespaces with '+'
+      queryExample: `for=${entry.name.replace(/\s+/g, '+')}:*${entry.requires?.length ? '&in=' + entry.requires.map((name) => name.replace(/\s+/g, '+') + ':*').join('+') : ''}`, // Replaces all whitespaces with '+'
       requires: entry.requires,
       allowsWildcard: entry.wildcard,
       wildcardFor: entry.optionalWithWCFor,

@@ -32,13 +32,10 @@ done
 # Change to project directory
 cd "$PROJECT_DIR" || exit
 
-# Ensure services are running
-docker compose --profile prod up -d >/dev/null 2>&1
-sleep 3
 
 if [ "$JSON_ONLY" = false ]; then
     echo "Listing available MCP prompts..."
 fi
 
 echo '{"jsonrpc":"2.0","id":1,"method":"prompts/list"}' | \
-docker exec -i mcp-server node dist/index.js
+bash "$SCRIPT_DIR/../mcp-connect.sh"

@@ -1,0 +1,43 @@
+{
+  "name": "us-census-bureau-data-api-mcp",
+  "scripts": {
+    "build": "npm --prefix mcp-server run build",
+    "start": "node mcp-server/dist/index.js",
+    "test": "npm --prefix mcp-server test",
+    "lint": "npm --prefix mcp-server run lint",
+    "prepare": "npm run build"
+  },
+  "version": "1.0.0",
+  "description": "Direct Census API MCP server; no database or Docker required.",
+  "license": "CC0-1.0",
+  "bin": {
+    "census-api-mcp": "mcp-server/dist/index.js"
+  },
+  "files": [
+    "mcp-server/dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "dotenv": "^17.2.0",
+    "node-fetch": "^3.3.2",
+    "zod": "^3.25.32"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.28.0",
+    "@types/node": "^22.15.23",
+    "@vitest/coverage-v8": "^3.2.4",
+    "eslint": "^9.28.0",
+    "globals": "^16.2.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.33.1",
+    "vitest": "^3.1.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mbarker-edgehomes/us-census-bureau-data-api-mcp.git"
+  }
+}

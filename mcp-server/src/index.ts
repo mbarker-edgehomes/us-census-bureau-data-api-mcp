@@ -1,6 +1,11 @@
+#!/usr/bin/env node
 const enableDebugLogs = process.env.DEBUG_LOGS === 'true'
 
-if (!enableDebugLogs) {
+if (enableDebugLogs) {
+  console.log = console.error
+  console.info = console.error
+  console.warn = console.error
+} else {
   console.log = () => {}
   console.info = () => {}
   console.warn = () => {}

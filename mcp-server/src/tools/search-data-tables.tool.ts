@@ -1,36 +1,23 @@
 import { Tool } from '@modelcontextprotocol/sdk/types.js'
 
 import { BaseTool } from './base.tool.js'
-import { DatabaseService } from '../services/database.service.js'
+import { CensusApiService } from '../services/census-api.service.js'
 import {
   SearchDataTablesArgs,
   SearchDataTablesArgsSchema,
   SearchDataTablesInputSchema,
 } from '../schema/search-data-tables.schema.js'
 
-import { DataTableSearchResultRow } from '../types/data-table.types.js'
 import { ToolContent } from '../types/base.types.js'
 
-export const toolDescription = `
-  Search for Census Bureau data tables by ID, label, or data API endpoint (e.g. acs/acs1). Use this tool when users reference a topic or variable category (e.g., "language spoken at home", "income by race") and need to identify the correct table ID before calling fetch-aggregate-data to retrieve the actual data. Accepts a table ID prefix (e.g., "B16005"), a natural language label query, and an optional API endpoint scope. Returns a ranked list of matching table metadata with their canonical labels, component, and available years.
-
-  Coverage: 32,000+ indexed tables, concentrated in ACS (~83%), CPS (~14%), and SIPP (~3%). Decennial Census, Population Estimates, and Decennial Census of Island Areas have limited coverage. Economic Census, Economic Surveys, Geography, Census Planning Database, and several other programs have no indexed tables — use variables with fetch-aggregate-data for those programs.
-
-  For best results, provide api_endpoint whenever the target survey or dataset is known. Scoping to a specific endpoint significantly improves ranking quality by eliminating cross-survey noise.
-
-  Each result object includes:
-  - data_table_id: maps to the get.group parameter in fetch-aggregate-data
-  - label: canonical label for the data table
-  - component: the program and component this table belongs to (e.g., "American Community Survey - ACS 1-Year Estimates")
-  - datasets: an object mapping years to arrays of API endpoints in which this table is available
-`
+export const toolDescription = `Search live Census groups metadata by table ID prefix and label keywords. api_endpoint defaults to acs/acs5. Searches the latest published vintage only; returned datasets list only the vintage actually searched. Use list-datasets to choose another endpoint. Results include data_table_id for get.group, label, component, and datasets. Label keywords must all match (case insensitive).`
 
 export class SearchDataTablesTool extends BaseTool<SearchDataTablesArgs> {
   name = 'search-data-tables'
   description = toolDescription
   readonly requiresApiKey = false
 
-  private dbService: DatabaseService
+  private api = new CensusApiService()
 
   inputSchema: Tool['inputSchema'] =
     SearchDataTablesArgsSchema as unknown as Tool['inputSchema']
@@ -42,40 +29,13 @@ export class SearchDataTablesTool extends BaseTool<SearchDataTablesArgs> {
   constructor() {
     super()
     this.handler = this.handler.bind(this)
-    this.dbService = DatabaseService.getInstance()
-  }
-
-  private async searchDataTables(
-    args: SearchDataTablesArgs,
-  ): Promise<DataTableSearchResultRow[]> {
-    const {
-      data_table_id = null,
-      label_query = null,
-      api_endpoint = null,
-      limit = 20,
-    } = args
-
-    const result = await this.dbService.query<DataTableSearchResultRow>(
-      `SELECT * FROM search_data_tables($1, $2, $3, $4)`,
-      [data_table_id, label_query, api_endpoint, limit],
-    )
-
-    return result.rows
   }
 
   async toolHandler(
     args: SearchDataTablesArgs,
   ): Promise<{ content: ToolContent[] }> {
     try {
-      // Check database health first
-      const isDbHealthy = await this.dbService.healthCheck()
-      if (!isDbHealthy) {
-        return this.createErrorResponse(
-          'Database connection failed - cannot search data tables.',
-        )
-      }
-
-      const results = await this.searchDataTables(args)
+      const results = await this.api.searchTables(args)
 
       if (results && results.length > 0) {
         return {
