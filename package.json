@@ -1,17 +1,18 @@
 {
-  "name": "us-census-bureau-data-api-mcp",
+  "name": "edge-us-census-mcp",
+  "type": "module",
   "scripts": {
     "build": "npm --prefix mcp-server run build",
     "start": "node mcp-server/dist/index.js",
     "test": "npm --prefix mcp-server test",
     "lint": "npm --prefix mcp-server run lint",
-    "prepare": "npm run build"
+    "prepare": "node --input-type=module -e \"import { existsSync } from 'node:fs'; import { spawnSync } from 'node:child_process'; if (!existsSync('mcp-server/src/index.ts')) process.exit(0); const result = spawnSync('npm', ['run', 'build'], { stdio: 'inherit', shell: true }); process.exit(result.status ?? 1)\""
   },
   "version": "1.0.0",
   "description": "Direct Census API MCP server; no database or Docker required.",
   "license": "CC0-1.0",
   "bin": {
-    "census-api-mcp": "mcp-server/dist/index.js"
+    "edge-us-census-mcp": "mcp-server/dist/index.js"
   },
   "files": [
     "mcp-server/dist"

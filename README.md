@@ -2,7 +2,27 @@
 
 A TypeScript MCP server that queries the U.S. Census Bureau API directly. No Docker, PostgreSQL, migrations, seeding, or local data store is needed.
 
-## Add to Cursor (automatic setup)
+## Add to Cursor
+
+Requires Node.js 22+ and npm. No Git checkout. Add this server to `~/.cursor/mcp.json` (all projects) or `.cursor/mcp.json` (one project):
+
+```json
+{
+  "mcpServers": {
+    "edge-us-census-mcp": {
+      "command": "npx",
+      "args": ["-y", "edge-us-census-mcp"],
+      "env": { "CENSUS_API_KEY": "YOUR_CENSUS_API_KEY" }
+    }
+  }
+}
+```
+
+`npx` downloads `edge-us-census-mcp` from the npm registry. The package contains no API key. Each user sets `CENSUS_API_KEY` to their own key from the [Census API key signup](https://api.census.gov/data/key_signup.html). `list-datasets`, `fetch-aggregate-data`, `fetch-dataset-geography`, and `resolve-geography-fips` return `CENSUS_API_KEY is not set` when that variable is missing or empty. The Census API rejects every data request that lacks a valid key.
+
+First launch needs network access and may take a minute; if Cursor times out during setup, restart the server once installation finishes. If Cursor cannot find node/npm/npx, ensure Node.js is available on Cursor's PATH. See [Cursor's MCP installation documentation](https://cursor.com/help/customization/mcp).
+
+### Local checkout
 
 Requires Node.js 22+ and npm. For this local checkout, add the following server to `~/.cursor/mcp.json` (all projects) or `.cursor/mcp.json` (one project):
 
@@ -19,26 +39,6 @@ Requires Node.js 22+ and npm. For this local checkout, add the following server 
 ```
 
 The launcher installs dependencies and builds automatically on first launch. Later launches reuse the installation. Installation messages go to stderr, preserving the MCP protocol. Save the config and restart Cursor, then check Customize > MCPs. Merge this entry with existing servers. Keep API keys out of committed project config files.
-
-### Config-only install from GitHub
-
-Once these changes are pushed to the fork, no checkout or manual install is needed (Git must also be installed):
-
-```json
-{
-  "mcpServers": {
-    "census-api": {
-      "command": "npx",
-      "args": ["--yes", "--package", "github:mbarker-edgehomes/us-census-bureau-data-api-mcp", "census-api-mcp"],
-      "env": { "CENSUS_API_KEY": "YOUR_CENSUS_API_KEY" }
-    }
-  }
-}
-```
-
-The root package supplies an executable and a prepare build so npm can install directly from GitHub. For a fixed release, append `#COMMIT_OR_TAG` to the GitHub package reference. This configuration requires the refactored code to exist on the selected remote ref; unpushed local changes are not available to npx.
-
-First launch needs network access and may take a minute; if Cursor times out during setup, restart the server once installation finishes. If Cursor cannot find node/npm/npx, ensure Node.js is available on Cursor's PATH. See [Cursor's MCP installation documentation](https://cursor.com/help/customization/mcp).
 
 ## Setup
 
@@ -72,7 +72,7 @@ Alternatively, after installation, run the local package using npx:
 npx --yes --package ./mcp-server census-api-mcp
 ```
 
-The package includes a `census-api-mcp` executable and can be packed using `npm pack ./mcp-server`. These instructions use the local package; they do not assume this refactor has been published to npm. The `scripts/mcp-connect.sh` launcher also handles first-use installation.
+The published package name is `edge-us-census-mcp`. `npm pack` from the repository root builds `mcp-server/dist` and packs only that output plus package metadata. `sample.env`, `.env`, tests, and scripts stay out of the tarball. The `scripts/mcp-connect.sh` launcher also handles first-use installation for a local checkout.
 
 ## Tools
 
